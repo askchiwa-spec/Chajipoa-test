@@ -15,6 +15,7 @@ const redisClient = require('./config/redis');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const rateLimiter = require('./middleware/rateLimiter');
+const securityMiddleware = require('./middleware/security.middleware');
 
 // Import routes
 const userRoutes = require('./routes/user.routes');
@@ -24,6 +25,8 @@ const deviceRoutes = require('./routes/device.routes');
 const qrRoutes = require('./routes/qr.routes');
 const authRoutes = require('./routes/auth.routes');
 const monitoringRoutes = require('./routes/monitoring.routes');
+const securityRoutes = require('./routes/security.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 // Import Swagger
 const swaggerUi = require('swagger-ui-express');
@@ -35,12 +38,10 @@ const monitoringService = require('./services/MonitoringService');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
+// Enhanced Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
-}));
+app.use(securityMiddleware.securityHeaders());
+app.use(cors(require('../config/security.config').cors));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -49,8 +50,17 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Logging middleware
 app.use(morgan('combined', { stream: logger.stream }));
 
-// Rate limiting
-app.use(rateLimiter);
+// Enhanced Rate limiting with security middleware
+app.use('/api/', securityMiddleware.rateLimiter({
+  max: 100,
+  windowMs: 15 * 60 * 1000
+}));
+
+// Stricter rate limiting for authentication endpoints
+app.use('/api/v1/auth/', securityMiddleware.rateLimiter({
+  max: 10,
+  windowMs: 15 * 60 * 1000
+}));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -69,6 +79,8 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/devices', deviceRoutes);
 app.use('/api/v1/qr', qrRoutes);
 app.use('/api/v1/monitoring', monitoringRoutes);
+app.use('/api/v1/security', securityRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

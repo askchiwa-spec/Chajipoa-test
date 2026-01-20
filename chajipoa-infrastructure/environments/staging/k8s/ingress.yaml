@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chajipoa-ingress
+  namespace: chajipoa-staging
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - api.staging.chajipoa.co.tz
+    - app.staging.chajipoa.co.tz
+    secretName: chajipoa-staging-tls
+  rules:
+  - host: api.staging.chajipoa.co.tz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: chajipoa-api-service
+            port:
+              number: 80
+  - host: app.staging.chajipoa.co.tz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: chajipoa-frontend-service
+            port:
+              number: 80

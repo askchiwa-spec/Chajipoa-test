@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa - Predictive Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #1a2a6c 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ecf0f1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .time-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .time-btn {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #ecf0f1;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .time-btn.active {
+            background: #3498db;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .prediction-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .prediction-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .confidence-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .high-confidence { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .medium-confidence { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+        .low-confidence { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        
+        .prediction-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .prediction-label {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .trend-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .trend-up { color: #2ecc71; }
+        .trend-down { color: #e74c3c; }
+        
+        .forecast-charts {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .confidence-meter {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        .high-confidence-fill { background: #2ecc71; }
+        .medium-confidence-fill { background: #f1c40f; }
+        .low-confidence-fill { background: #e74c3c; }
+        
+        .risk-assessment {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .risk-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid;
+        }
+        
+        .risk-high { border-color: #e74c3c; }
+        .risk-medium { border-color: #f1c40f; }
+        .risk-low { border-color: #2ecc71; }
+        
+        .risk-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .risk-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .recommendations {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+        
+        .recommendations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .recommendations-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .recommendation-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #3498db;
+        }
+        
+        .recommendation-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .forecast-charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .recommendations-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <span class="logo-icon">🔮</span>
+                <span>Predictive Analytics Dashboard</span>
+            </div>
+            <div class="controls">
+                <div class="time-selector">
+                    <button class="time-btn active" onclick="setTimeHorizon('7d')">7 Days</button>
+                    <button class="time-btn" onclick="setTimeHorizon('30d')">30 Days</button>
+                    <button class="time-btn" onclick="setTimeHorizon('90d')">90 Days</button>
+                </div>
+                <button class="btn" onclick="refreshPredictions()">Refresh Predictions</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="prediction-card">
+                <div class="card-header">
+                    <div class="card-title">Demand Forecast</div>
+                    <div class="confidence-badge high-confidence">95% Confidence</div>
+                </div>
+                <div class="prediction-value" id="demandForecast">1,847</div>
+                <div class="prediction-label">Expected rentals in next 7 days</div>
+                <div class="trend-indicator trend-up">
+                    <span>↑ 12.3%</span>
+                    <span>vs previous period</span>
+                </div>
+                <div class="confidence-meter">
+                    <div class="confidence-fill high-confidence-fill" style="width: 95%"></div>
+                </div>
+            </div>
+            
+            <div class="prediction-card">
+                <div class="card-header">
+                    <div class="card-title">Revenue Prediction</div>
+                    <div class="confidence-badge medium-confidence">87% Confidence</div>
+                </div>
+                <div class="prediction-value" id="revenuePrediction">TZS 2.1M</div>
+                <div class="prediction-label">Projected revenue next 30 days</div>
+                <div class="trend-indicator trend-up">
+                    <span>↑ 8.7%</span>
+                    <span>growth expected</span>
+                </div>
+                <div class="confidence-meter">
+                    <div class="confidence-fill medium-confidence-fill" style="width: 87%"></div>
+                </div>
+            </div>
+            
+            <div class="prediction-card">
+                <div class="card-header">
+                    <div class="card-title">Maintenance Schedule</div>
+                    <div class="confidence-badge high-confidence">92% Confidence</div>
+                </div>
+                <div class="prediction-value" id="maintenanceCount">23</div>
+                <div class="prediction-label">Devices needing maintenance</div>
+                <div class="trend-indicator trend-down">
+                    <span>↓ 15%</span>
+                    <span>from current levels</span>
+                </div>
+                <div class="confidence-meter">
+                    <div class="confidence-fill high-confidence-fill" style="width: 92%"></div>
+                </div>
+            </div>
+            
+            <div class="prediction-card">
+                <div class="card-header">
+                    <div class="card-title">Inventory Optimization</div>
+                    <div class="confidence-badge medium-confidence">84% Confidence</div>
+                </div>
+                <div class="prediction-value" id="optimalInventory">156</div>
+                <div class="prediction-label">Optimal station count</div>
+                <div class="trend-indicator">
+                    <span>→</span>
+                    <span>No significant change</span>
+                </div>
+                <div class="confidence-meter">
+                    <div class="confidence-fill medium-confidence-fill" style="width: 84%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="forecast-charts">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">7-Day Demand Forecast</div>
+                    <div>Confidence: 95%</div>
+                </div>
+                <canvas id="demandChart" height="120"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Risk Assessment</div>
+                </div>
+                <div class="risk-assessment">
+                    <div class="risk-card risk-low">
+                        <div class="risk-value">12%</div>
+                        <div class="risk-label">Supply Risk</div>
+                    </div>
+                    <div class="risk-card risk-medium">
+                        <div class="risk-value">34%</div>
+                        <div class="risk-label">Demand Risk</div>
+                    </div>
+                    <div class="risk-card risk-high">
+                        <div class="risk-value">56%</div>
+                        <div class="risk-label">Financial Risk</div>
+                    </div>
+                    <div class="risk-card risk-low">
+                        <div class="risk-value">8%</div>
+                        <div class="risk-label">Operational Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="recommendations">
+            <div class="recommendations-header">
+                <div class="chart-title">AI-Powered Recommendations</div>
+                <div>Last updated: <span id="lastUpdated">Just now</span></div>
+            </div>
+            <div class="recommendations-list">
+                <div class="recommendation-item">
+                    <div class="recommendation-title">📈 Increase Inventory</div>
+                    <div class="recommendation-desc">Add 12 more devices to high-demand stations in Dar es Salaam to capture 15% additional market share.</div>
+                </div>
+                <div class="recommendation-item">
+                    <div class="recommendation-title">💰 Pricing Optimization</div>
+                    <div class="recommendation-desc">Implement dynamic pricing during peak hours (6-9 PM) to increase revenue by 18% without affecting demand.</div>
+                </div>
+                <div class="recommendation-item">
+                    <div class="recommendation-title">🔧 Preventive Maintenance</div>
+                    <div class="recommendation-desc">Schedule maintenance for 23 devices showing early signs of battery degradation to prevent 40% downtime.</div>
+                </div>
+                <div class="recommendation-item">
+                    <div class="recommendation-title">👥 Staff Optimization</div>
+                    <div class="recommendation-desc">Redeploy 2 field technicians to Mwanza region where demand is projected to grow 25% in next quarter.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div>Running predictive algorithms...</div>
+        <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.7;">Analyzing historical data and generating forecasts</div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTimeHorizon = '7d';
+        let demandChart;
+        
+        // Sample prediction data (in real implementation, this would come from ML models)
+        const predictionData = {
+            '7d': {
+                demand: [1847, 1923, 1789, 2056, 1987, 2123, 2045],
+                dates: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                confidence: 95
+            },
+            '30d': {
+                demand: Array(30).fill(0).map((_, i) => 8500 + Math.sin(i/5) * 1200 + Math.random() * 800),
+                dates: Array(30).fill(0).map((_, i) => `Day ${i+1}`),
+                confidence: 87
+            },
+            '90d': {
+                demand: Array(90).fill(0).map((_, i) => 25000 + Math.sin(i/15) * 3000 + Math.random() * 2000),
+                dates: Array(90).fill(0).map((_, i) => `Week ${Math.ceil((i+1)/7)}`),
+                confidence: 82
+            }
+        };
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            updatePredictions();
+        });
+        
+        function initializeCharts() {
+            const ctx = document.getElementById('demandChart').getContext('2d');
+            
+            const data = predictionData[currentTimeHorizon];
+            
+            demandChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Historical',
+                        data: data.demand.map((val, i) => i < data.demand.length - 3 ? val : null),
+                        borderColor: 'rgba(52, 152, 219, 0.6)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Predicted',
+                        data: data.demand.map((val, i) => i >= data.demand.length - 4 ? val : null),
+                        borderColor: 'rgba(46, 204, 113, 0.8)',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ecf0f1'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${Math.round(context.parsed.y)} rentals`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            },
+                            ticks: {
+                                color: '#ecf0f1'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#ecf0f1'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        function setTimeHorizon(horizon) {
+            currentTimeHorizon = horizon;
+            
+            // Update button styles
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update charts and predictions
+            showLoading();
+            setTimeout(() => {
+                demandChart.data.labels = predictionData[horizon].dates;
+                demandChart.data.datasets[0].data = predictionData[horizon].demand.map((val, i) => 
+                    i < predictionData[horizon].demand.length - 3 ? val : null);
+                demandChart.data.datasets[1].data = predictionData[horizon].demand.map((val, i) => 
+                    i >= predictionData[horizon].demand.length - 4 ? val : null);
+                demandChart.update();
+                
+                updatePredictions();
+                hideLoading();
+            }, 1500);
+        }
+        
+        function updatePredictions() {
+            const data = predictionData[currentTimeHorizon];
+            const avgDemand = data.demand.reduce((sum, val) => sum + val, 0) / data.demand.length;
+            const growthRate = ((data.demand[data.demand.length - 1] - data.demand[0]) / data.demand[0] * 100);
+            
+            // Update demand forecast
+            document.getElementById('demandForecast').textContent = Math.round(avgDemand).toLocaleString();
+            
+            // Update revenue prediction (assuming average rental value)
+            const avgRentalValue = 2500; // TZS
+            const predictedRevenue = avgDemand * avgRentalValue * (currentTimeHorizon === '7d' ? 1 : 
+                                       currentTimeHorizon === '30d' ? 4 : 12);
+            document.getElementById('revenuePrediction').textContent = 
+                `TZS ${(predictedRevenue / 1000000).toFixed(1)}M`;
+            
+            // Update maintenance schedule
+            const maintenanceRatio = 0.12 + (Math.random() * 0.08); // 12-20% of devices
+            const maintenanceCount = Math.round(predictionData['7d'].demand[0] * maintenanceRatio / 30);
+            document.getElementById('maintenanceCount').textContent = maintenanceCount;
+            
+            // Update inventory optimization
+            const optimalDensity = 1.2 + (Math.random() * 0.3); // 1.2-1.5 devices per station
+            const optimalInventory = Math.round(predictionData['7d'].demand[0] / optimalDensity);
+            document.getElementById('optimalInventory').textContent = optimalInventory;
+            
+            // Update last updated time
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function refreshPredictions() {
+            showLoading();
+            setTimeout(() => {
+                // Simulate new predictions
+                Object.keys(predictionData).forEach(key => {
+                    predictionData[key].demand = predictionData[key].demand.map(val => 
+                        val * (0.95 + Math.random() * 0.1)
+                    );
+                });
+                
+                updatePredictions();
+                demandChart.update();
+                hideLoading();
+                
+                // Show notification
+                alert('Predictions refreshed with latest data!\nAI models have reprocessed all historical data and generated updated forecasts.');
+            }, 2000);
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

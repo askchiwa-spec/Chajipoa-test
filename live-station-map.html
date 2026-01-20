@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa - Live Station Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .map-container {
+            flex: 3;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        #map {
+            height: 100%;
+            min-height: 600px;
+        }
+        
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .station-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .station-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .station-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .station-item.active {
+            background: #e8f5e8;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .station-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .station-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-available {
+            background: #e8f5e8;
+            color: #27ae60;
+        }
+        
+        .status-low {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+        
+        .status-full {
+            background: #f8d7da;
+            color: #e74c3c;
+        }
+        
+        .filter-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-group label {
+            min-width: 100px;
+            font-weight: 600;
+        }
+        
+        select, input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .last-updated {
+            text-align: center;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #27ae60;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span>⚡</span>
+            <span>ChajiPoa Live Map</span>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="refreshData()">Refresh Data</button>
+            <button class="btn btn-secondary" onclick="toggleHeatmap()">Toggle Heatmap</button>
+            <button class="btn btn-secondary" onclick="findNearest()">Find Nearest</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="panel">
+                <h3>📊 Real-time Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalStations">156</div>
+                        <div class="stat-label">Total Stations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="availableDevices">2,847</div>
+                        <div class="stat-label">Available Devices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeRentals">342</div>
+                        <div class="stat-label">Active Rentals</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="utilization">78%</div>
+                        <div class="stat-label">Utilization</div>
+                    </div>
+                </div>
+                <div class="last-updated" id="lastUpdated">
+                    Last updated: Just now
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h3>🔍 Filters</h3>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="statusFilter" onchange="applyFilters()">
+                            <option value="all">All Stations</option>
+                            <option value="available">Available</option>
+                            <option value="low">Low Battery</option>
+                            <option value="full">Full Capacity</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>City:</label>
+                        <select id="cityFilter" onchange="applyFilters()">
+                            <option value="all">All Cities</option>
+                            <option value="dar">Dar es Salaam</option>
+                            <option value="mwanza">Mwanza</option>
+                            <option value="arusha">Arusha</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" id="searchFilter" placeholder="Station name..." onkeyup="applyFilters()">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h3>📍 Nearby Stations</h3>
+                <div class="station-list" id="stationList">
+                    <!-- Stations will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Global variables
+        let map;
+        let markers = [];
+        let heatmapLayer;
+        let showHeatmap = false;
+        
+        // Sample station data (in real implementation, this would come from API)
+        const stations = [
+            { id: 1, name: "Dar Central Mall", lat: -6.7924, lng: 39.2083, available: 15, capacity: 20, status: "available", city: "dar" },
+            { id: 2, name: "Mlimani City", lat: -6.7850, lng: 39.2250, available: 3, capacity: 20, status: "low", city: "dar" },
+            { id: 3, name: "Mwanza Airport", lat: -2.4833, lng: 33.0833, available: 18, capacity: 20, status: "available", city: "mwanza" },
+            { id: 4, name: "Arusha Bus Stand", lat: -3.3869, lng: 36.6828, available: 0, capacity: 15, status: "full", city: "arusha" },
+            { id: 5, name: "Ocean Road", lat: -6.7910, lng: 39.2000, available: 12, capacity: 15, status: "available", city: "dar" }
+        ];
+        
+        // Initialize map when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            loadStations();
+            updateStats();
+            updateStationList();
+            
+            // Simulate real-time updates
+            setInterval(refreshData, 30000); // Refresh every 30 seconds
+        });
+        
+        function initializeMap() {
+            // Create map centered on Tanzania
+            map = L.map('map').setView([-6.7924, 39.2083], 7);
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add user location marker
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    
+                    L.marker([userLat, userLng])
+                        .addTo(map)
+                        .bindPopup('Your Location')
+                        .openPopup();
+                });
+            }
+        }
+        
+        function loadStations() {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Add station markers
+            stations.forEach(station => {
+                const marker = L.marker([station.lat, station.lng], {
+                    icon: getStationIcon(station)
+                })
+                .addTo(map)
+                .bindPopup(createStationPopup(station));
+                
+                marker.stationId = station.id;
+                markers.push(marker);
+            });
+        }
+        
+        function getStationIcon(station) {
+            let color, iconText;
+            
+            switch(station.status) {
+                case 'available':
+                    color = '#27ae60';
+                    iconText = '🔋';
+                    break;
+                case 'low':
+                    color = '#f39c12';
+                    iconText = '⚠️';
+                    break;
+                case 'full':
+                    color = '#e74c3c';
+                    iconText = '✅';
+                    break;
+                default:
+                    color = '#95a5a6';
+                    iconText = '❓';
+            }
+            
+            return L.divIcon({
+                className: 'station-marker',
+                html: `<div style="
+                    background: ${color};
+                    color: white;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                ">${iconText}</div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+        }
+        
+        function createStationPopup(station) {
+            const utilization = Math.round((station.available / station.capacity) * 100);
+            
+            return `
+                <div style="min-width: 200px;">
+                    <h3 style="margin: 0 0 10px 0; color: #333;">${station.name}</h3>
+                    <div style="margin: 5px 0;">
+                        <strong>Status:</strong> 
+                        <span style="padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+                            background: ${station.status === 'available' ? '#e8f5e8' : station.status === 'low' ? '#fff3cd' : '#f8d7da'};
+                            color: ${station.status === 'available' ? '#27ae60' : station.status === 'low' ? '#f39c12' : '#e74c3c'}">
+                            ${station.status.charAt(0).toUpperCase() + station.status.slice(1)}
+                        </span>
+                    </div>
+                    <div style="margin: 5px 0;"><strong>Available:</strong> ${station.available}/${station.capacity}</div>
+                    <div style="margin: 5px 0;"><strong>Utilization:</strong> ${utilization}%</div>
+                    <div style="margin: 10px 0 0 0;">
+                        <button onclick="startRental(${station.id})" style="
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            padding: 8px 15px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-weight: 600;
+                        ">Start Rental</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateStats() {
+            const totalStations = stations.length;
+            const totalAvailable = stations.reduce((sum, station) => sum + station.available, 0);
+            const totalCapacity = stations.reduce((sum, station) => sum + station.capacity, 0);
+            const activeRentals = Math.floor(Math.random() * 50) + 300; // Simulated
+            const utilization = Math.round((totalAvailable / totalCapacity) * 100);
+            
+            document.getElementById('totalStations').textContent = totalStations;
+            document.getElementById('availableDevices').textContent = totalAvailable;
+            document.getElementById('activeRentals').textContent = activeRentals;
+            document.getElementById('utilization').textContent = utilization + '%';
+        }
+        
+        function updateStationList() {
+            const container = document.getElementById('stationList');
+            container.innerHTML = '';
+            
+            const filteredStations = applyFilters();
+            
+            filteredStations.forEach(station => {
+                const utilization = Math.round((station.available / station.capacity) * 100);
+                const statusClass = station.status === 'available' ? 'status-available' : 
+                                  station.status === 'low' ? 'status-low' : 'status-full';
+                
+                const stationElement = document.createElement('div');
+                stationElement.className = 'station-item';
+                stationElement.onclick = () => selectStation(station.id);
+                stationElement.innerHTML = `
+                    <div class="station-name">${station.name}</div>
+                    <div>
+                        <span class="station-status ${statusClass}">
+                            ${station.status.charAt(0).toUpperCase() + station.status.slice(1)}
+                        </span>
+                        <span style="float: right; font-size: 0.9rem;">
+                            ${station.available}/${station.capacity}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">
+                        Utilization: ${utilization}%
+                    </div>
+                `;
+                
+                container.appendChild(stationElement);
+            });
+        }
+        
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const cityFilter = document.getElementById('cityFilter').value;
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            
+            return stations.filter(station => {
+                const matchesStatus = statusFilter === 'all' || station.status === statusFilter;
+                const matchesCity = cityFilter === 'all' || station.city === cityFilter;
+                const matchesSearch = station.name.toLowerCase().includes(searchTerm);
+                
+                return matchesStatus && matchesCity && matchesSearch;
+            });
+        }
+        
+        function selectStation(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (station) {
+                map.setView([station.lat, station.lng], 15);
+                
+                // Highlight selected station in list
+                document.querySelectorAll('.station-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.currentTarget.classList.add('active');
+            }
+        }
+        
+        function refreshData() {
+            // Simulate data refresh
+            stations.forEach(station => {
+                // Random small changes to simulate real-time updates
+                if (Math.random() > 0.7) {
+                    const change = Math.random() > 0.5 ? 1 : -1;
+                    station.available = Math.max(0, Math.min(station.capacity, station.available + change));
+                    
+                    // Update status based on availability
+                    if (station.available === 0) {
+                        station.status = 'full';
+                    } else if (station.available <= 3) {
+                        station.status = 'low';
+                    } else {
+                        station.status = 'available';
+                    }
+                }
+            });
+            
+            // Update UI
+            loadStations();
+            updateStats();
+            updateStationList();
+            document.getElementById('lastUpdated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+        
+        function toggleHeatmap() {
+            showHeatmap = !showHeatmap;
+            
+            if (showHeatmap) {
+                // Create heatmap data
+                const heatmapData = stations.map(station => [
+                    station.lat, 
+                    station.lng, 
+                    station.available / station.capacity
+                ]);
+                
+                // Note: In real implementation, you'd use leaflet.heat or similar
+                console.log('Heatmap would be shown with data:', heatmapData);
+            } else {
+                console.log('Heatmap hidden');
+            }
+        }
+        
+        function findNearest() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    
+                    // Find nearest station
+                    let nearestStation = null;
+                    let minDistance = Infinity;
+                    
+                    stations.forEach(station => {
+                        const distance = calculateDistance(
+                            userLat, userLng, 
+                            station.lat, station.lng
+                        );
+                        
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestStation = station;
+                        }
+                    });
+                    
+                    if (nearestStation) {
+                        map.setView([nearestStation.lat, nearestStation.lng], 15);
+                        alert(`Nearest station: ${nearestStation.name} (${minDistance.toFixed(1)} km away)`);
+                    }
+                });
+            }
+        }
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function startRental(stationId) {
+            alert(`Starting rental at station ID: ${stationId}\nIn real implementation, this would open the rental flow.`);
+        }
+    </script>
+</body>
+</html>

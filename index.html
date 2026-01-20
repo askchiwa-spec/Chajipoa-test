@@ -1,168 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChajiPoa Dashboard Previews</title>
+    <title>CHAJIPOA Dashboard - Live Preview</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 50px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            text-align: center;
-            max-width: 800px;
-            width: 100%;
-        }
-        
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            color: #4CAF50;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 40px;
-        }
-        
-        .dashboard-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-        
-        .dashboard-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
             border-radius: 15px;
             padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { 
+            color: #2c3e50; 
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
+            margin-bottom: 30px;
+            font-size: 2.5em;
         }
-        
-        .dashboard-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        .features { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+            margin: 30px 0;
         }
-        
-        .dashboard-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+        .feature-card { 
+            background: #f8f9fa; 
+            padding: 25px; 
+            border-radius: 10px;
+            border-left: 5px solid #4285f4;
+            transition: transform 0.3s ease;
         }
-        
-        .dashboard-client .dashboard-icon { color: #4CAF50; }
-        .dashboard-admin .dashboard-icon { color: #2c3e50; }
-        
-        .dashboard-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
-        .dashboard-description {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
+        .feature-card h3 { 
+            color: #4285f4; 
+            margin-top: 0;
+            font-size: 1.4em;
         }
-        
-        .btn {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
+        .preview-link {
+            display: block;
+            text-align: center;
+            background: #4285f4;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            padding: 15px 30px;
             text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 30px 0;
+            font-size: 1.2em;
+            transition: background 0.3s ease;
+        }
+        .preview-link:hover {
+            background: #3367d6;
+            transform: scale(1.05);
+        }
+        .tech-stack {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .tech-stack h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .badge {
             display: inline-block;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn-admin {
-            background: linear-gradient(45deg, #2c3e50, #1a2530);
-        }
-        
-        .footer {
-            margin-top: 40px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 30px 20px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
+            background: #4285f4;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">⚡</div>
-        <h1>ChajiPoa Dashboard Previews</h1>
-        <p class="subtitle">Experience the look and feel of our user interfaces</p>
+        <h1>🔋 CHAJIPOA DASHBOARD PREVIEW</h1>
         
-        <div class="dashboard-options">
-            <div class="dashboard-card dashboard-client" onclick="window.open('client-dashboard-preview.html', '_blank')">
-                <div class="dashboard-icon">📱</div>
-                <h3 class="dashboard-title">Client Dashboard</h3>
-                <p class="dashboard-description">
-                    The user-facing dashboard for customers to manage their rentals, 
-                    view rental history, and interact with the power bank system.
-                </p>
-                <a href="client-dashboard-preview.html" target="_blank" class="btn">Preview Client Dashboard</a>
-            </div>
-            
-            <div class="dashboard-card dashboard-admin" onclick="window.open('admin-dashboard-preview.html', '_blank')">
-                <div class="dashboard-icon">📊</div>
-                <h3 class="dashboard-title">Admin Dashboard</h3>
-                <p class="dashboard-description">
-                    The administrative interface for managing users, devices, 
-                    stations, payments, and system analytics.
-                </p>
-                <a href="admin-dashboard-preview.html" target="_blank" class="btn btn-admin">Preview Admin Dashboard</a>
+        <div class="tech-stack">
+            <h3>🚀 Enhanced Features Implemented</h3>
+            <div>
+                <span class="badge">Real-time WebSocket</span>
+                <span class="badge">Multi-format Export</span>
+                <span class="badge">Advanced Security</span>
+                <span class="badge">API Integration</span>
+                <span class="badge">Data Visualization</span>
+                <span class="badge">Responsive Design</span>
             </div>
         </div>
-        
-        <div class="footer">
-            <p>ChajiPoa Power Bank Rental Platform - Built for Tanzania's Digital Economy</p>
-            <p>Preview Mode - Full functionality available in production</p>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>📊 Real-time Dashboard</h3>
+                <p>Interactive dashboard with live WebSocket connections, real-time metric updates, and multi-data source integration for analytics, transactions, devices, and stations.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🔐 Advanced Security</h3>
+                <p>Enterprise-grade security features including JWT authentication, rate limiting, input validation, threat detection, and comprehensive audit logging.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>📤 Multi-format Export</h3>
+                <p>Professional export capabilities supporting PDF, Excel, CSV, JSON, and XML formats with customizable templates and batch processing.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🌐 API Integration</h3>
+                <p>Robust API framework with caching, fallback data, batch requests, and real-time WebSocket subscriptions for seamless data integration.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>📈 Data Visualization</h3>
+                <p>Interactive charts, real-time metrics display, performance monitoring, and predictive analytics with responsive design.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>📱 Mobile Responsive</h3>
+                <p>Fully responsive design that works seamlessly across desktop, tablet, and mobile devices with touch-friendly interactions.</p>
+            </div>
+        </div>
+
+        <a href="dashboard-preview.html" class="preview-link">
+            🖥️ VIEW LIVE DASHBOARD DEMO
+        </a>
+
+        <div style="text-align: center; margin-top: 30px; color: #7f8c8d;">
+            <p><strong>Repository:</strong> github.com/baamrecs/ChajiPoa</p>
+            <p><strong>Last Updated:</strong> January 20, 2026</p>
+            <p><strong>Status:</strong> <span style="color: #27ae60;">✓ Complete Implementation</span></p>
         </div>
     </div>
 </body>

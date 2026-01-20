@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa - Usage Heatmap Calendar</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .calendar-container {
+            margin: 30px 0;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .month-nav {
+            background: #f8f9fa;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .month-nav:hover {
+            background: #e9ecef;
+        }
+        
+        .current-month {
+            font-size: 1.3rem;
+            font-weight: 600;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+        
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .calendar-day.today {
+            border: 2px solid #4CAF50;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .tooltip.visible {
+            opacity: 1;
+        }
+        
+        .hourly-view {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .hourly-grid {
+            display: grid;
+            grid-template-columns: 50px repeat(24, 1fr);
+            gap: 2px;
+            margin-top: 15px;
+        }
+        
+        .hour-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .hour-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        
+        .hour-cell:hover {
+            transform: scale(1.2);
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 2px;
+            }
+            
+            .hourly-grid {
+                grid-template-columns: 40px repeat(24, 1fr);
+                overflow-x: auto;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <span>⚡</span>
+                <span>Usage Heatmap Calendar</span>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="exportData()">Export Data</button>
+                <button class="btn btn-secondary" onclick="toggleView()">Toggle Hourly View</button>
+                <button class="btn btn-secondary" onclick="refreshCalendar()">Refresh</button>
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="month-selector">
+                    <button class="month-nav" onclick="previousMonth()">‹</button>
+                    <div class="current-month" id="currentMonth">January 2024</div>
+                    <button class="month-nav" onclick="nextMonth()">›</button>
+                </div>
+            </div>
+            
+            <div class="legend">
+                <span style="font-weight: 600; margin-right: 15px;">Usage Intensity:</span>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ebedf0;"></div>
+                    <span>0 rentals</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #c6e48b;"></div>
+                    <span>1-5</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #7bc96f;"></div>
+                    <span>6-15</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #239a3b;"></div>
+                    <span>16-30</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #196127;"></div>
+                    <span>30+</span>
+                </div>
+            </div>
+            
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be generated here -->
+            </div>
+        </div>
+        
+        <div class="hourly-view" id="hourlyView" style="display: none;">
+            <h3 style="margin-bottom: 20px; color: #333;">Hourly Usage Pattern</h3>
+            <div class="hourly-grid" id="hourlyGrid">
+                <!-- Hourly grid will be generated here -->
+            </div>
+        </div>
+        
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRentals">1,247</div>
+                <div class="stat-label">Total Rentals This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="peakDay">Wed</div>
+                <div class="stat-label">Peak Day of Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="peakHour">18:00</div>
+                <div class="stat-label">Peak Hour</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgDaily">42</div>
+                <div class="stat-label">Avg Daily Rentals</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Global variables
+        let currentDate = new Date();
+        let currentView = 'daily'; // 'daily' or 'hourly'
+        let tooltip = document.getElementById('tooltip');
+        
+        // Color scale mapping
+        const colorScale = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+        
+        // Sample data (in real implementation, this would come from API)
+        let usageData = {};
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            generateSampleData();
+            renderCalendar();
+            updateStats();
+        });
+        
+        function generateSampleData() {
+            // Generate realistic usage data for current month
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                usageData[dateStr] = {
+                    total: Math.floor(Math.random() * 40) + 5, // 5-45 rentals per day
+                    hourly: Array(24).fill(0).map(() => Math.floor(Math.random() * 8))
+                };
+            }
+            
+            // Add some realistic patterns
+            // Weekend days typically have higher usage
+            // Peak hours around 8AM, 12PM, 6PM
+            Object.keys(usageData).forEach(date => {
+                const dateObj = new Date(date);
+                const dayOfWeek = dateObj.getDay();
+                
+                // Weekend boost
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    usageData[date].total = Math.floor(usageData[date].total * 1.3);
+                }
+                
+                // Peak hour distribution
+                usageData[date].hourly[8] += 3;
+                usageData[date].hourly[12] += 4;
+                usageData[date].hourly[18] += 5;
+                usageData[date].hourly[19] += 4;
+            });
+        }
+        
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            // Add day headers (Sun-Sat)
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day empty';
+                grid.appendChild(emptyCell);
+            }
+            
+            // Add calendar days
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            const todayDate = isCurrentMonth ? today.getDate() : -1;
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const rentals = usageData[dateStr] ? usageData[dateStr].total : 0;
+                const colorIndex = getColorIndex(rentals);
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                dayCell.style.backgroundColor = colorScale[colorIndex];
+                dayCell.textContent = day;
+                
+                if (day === todayDate) {
+                    dayCell.classList.add('today');
+                }
+                
+                // Add event listeners
+                dayCell.addEventListener('click', () => showDayDetails(dateStr, rentals));
+                dayCell.addEventListener('mouseenter', (e) => showTooltip(e, dateStr, rentals));
+                dayCell.addEventListener('mouseleave', hideTooltip);
+                
+                grid.appendChild(dayCell);
+            }
+            
+            // Update month display
+            document.getElementById('currentMonth').textContent = 
+                currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+        
+        function getColorIndex(rentals) {
+            if (rentals === 0) return 0;
+            if (rentals <= 5) return 1;
+            if (rentals <= 15) return 2;
+            if (rentals <= 30) return 3;
+            return 4;
+        }
+        
+        function showTooltip(event, date, rentals) {
+            const dateObj = new Date(date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            tooltip.innerHTML = `
+                <div><strong>${formattedDate}</strong></div>
+                <div>${rentals} rentals</div>
+                <div style="font-size: 0.8rem; margin-top: 5px; opacity: 0.8;">
+                    Click for detailed analytics
+                </div>
+            `;
+            
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+            tooltip.classList.add('visible');
+        }
+        
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+        
+        function showDayDetails(date, rentals) {
+            const hourlyData = usageData[date] ? usageData[date].hourly : Array(24).fill(0);
+            alert(`Detailed analytics for ${date}:
+
+Total Rentals: ${rentals}
+
+Hourly Distribution:
+${hourlyData.map((count, hour) => 
+                `${hour.toString().padStart(2, '0')}:00 - ${count} rentals`).join('\n')}\n\nIn real implementation, this would open a detailed analytics modal.`);
+        }
+        
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateSampleData();
+            renderCalendar();
+            updateStats();
+        }
+        
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateSampleData();
+            renderCalendar();
+            updateStats();
+        }
+        
+        function toggleView() {
+            const hourlyView = document.getElementById('hourlyView');
+            currentView = currentView === 'daily' ? 'hourly' : 'daily';
+            
+            if (currentView === 'hourly') {
+                hourlyView.style.display = 'block';
+                renderHourlyView();
+            } else {
+                hourlyView.style.display = 'none';
+            }
+        }
+        
+        function renderHourlyView() {
+            const grid = document.getElementById('hourlyGrid');
+            grid.innerHTML = '';
+            
+            // Add hour labels
+            for (let hour = 0; hour < 24; hour++) {
+                const label = document.createElement('div');
+                label.className = 'hour-label';
+                label.textContent = `${hour.toString().padStart(2, '0')}:00`;
+                grid.appendChild(label);
+            }
+            
+            // Add hourly data for current month
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let hourlyTotals = Array(24).fill(0);
+            
+            // Calculate totals for each hour across the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (usageData[dateStr]) {
+                    for (let hour = 0; hour < 24; hour++) {
+                        hourlyTotals[hour] += usageData[dateStr].hourly[hour] || 0;
+                    }
+                }
+            }
+            
+            // Add hourly cells
+            for (let hour = 0; hour < 24; hour++) {
+                const avgRentals = Math.round(hourlyTotals[hour] / daysInMonth);
+                const colorIndex = getColorIndex(avgRentals);
+                
+                const cell = document.createElement('div');
+                cell.className = 'hour-cell';
+                cell.style.backgroundColor = colorScale[colorIndex];
+                cell.textContent = avgRentals;
+                
+                cell.addEventListener('click', () => showHourDetails(hour, avgRentals));
+                cell.addEventListener('mouseenter', (e) => showHourTooltip(e, hour, avgRentals));
+                cell.addEventListener('mouseleave', hideTooltip);
+                
+                grid.appendChild(cell);
+            }
+        }
+        
+        function showHourDetails(hour, avgRentals) {
+            alert(`Hourly analytics for ${hour.toString().padStart(2, '0')}:00
+
+Average rentals: ${avgRentals}
+
+In real implementation, this would show detailed hourly trends and recommendations.`);
+        }
+        
+        function showHourTooltip(event, hour, rentals) {
+            tooltip.innerHTML = `
+                <div><strong>${hour.toString().padStart(2, '0')}:00</strong></div>
+                <div>Avg: ${rentals} rentals/hour</div>
+                <div style="font-size: 0.8rem; margin-top: 5px; opacity: 0.8;">
+                    Click for detailed analysis
+                </div>
+            `;
+            
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+            tooltip.classList.add('visible');
+        }
+        
+        function updateStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let totalRentals = 0;
+            let dailyCounts = Array(7).fill(0); // Sun-Sat
+            let hourlyCounts = Array(24).fill(0);
+            
+            // Calculate statistics
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(year, month, day);
+                const dayOfWeek = dateObj.getDay();
+                
+                if (usageData[dateStr]) {
+                    const dayTotal = usageData[dateStr].total;
+                    totalRentals += dayTotal;
+                    dailyCounts[dayOfWeek] += dayTotal;
+                    
+                    // Sum hourly data
+                    usageData[dateStr].hourly.forEach((count, hour) => {
+                        hourlyCounts[hour] += count;
+                    });
+                }
+            }
+            
+            // Update display
+            document.getElementById('totalRentals').textContent = totalRentals.toLocaleString();
+            
+            // Find peak day
+            const peakDayIndex = dailyCounts.indexOf(Math.max(...dailyCounts));
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            document.getElementById('peakDay').textContent = dayNames[peakDayIndex];
+            
+            // Find peak hour
+            const peakHourIndex = hourlyCounts.indexOf(Math.max(...hourlyCounts));
+            document.getElementById('peakHour').textContent = 
+                `${peakHourIndex.toString().padStart(2, '0')}:00`;
+            
+            // Average daily rentals
+            document.getElementById('avgDaily').textContent = Math.round(totalRentals / daysInMonth);
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(usageData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `chajipoa-usage-data-${currentDate.toISOString().slice(0, 7)}.json`;
+            link.click();
+        }
+        
+        function refreshCalendar() {
+            generateSampleData();
+            renderCalendar();
+            updateStats();
+            if (currentView === 'hourly') {
+                renderHourlyView();
+            }
+        }
+    </script>
+</body>
+</html>

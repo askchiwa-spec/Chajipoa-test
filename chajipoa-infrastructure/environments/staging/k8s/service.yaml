@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: chajipoa-api-service
+  namespace: chajipoa-staging
+  labels:
+    app: chajipoa-api
+    environment: staging
+spec:
+  selector:
+    app: chajipoa-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chajipoa-frontend-service
+  namespace: chajipoa-staging
+  labels:
+    app: chajipoa-frontend
+    environment: staging
+spec:
+  selector:
+    app: chajipoa-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: ClusterIP

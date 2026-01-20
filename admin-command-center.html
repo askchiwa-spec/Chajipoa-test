@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa - Admin Command Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            min-height: 100vh;
+            color: #ecf0f1;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 20px 30px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            padding: 25px 0;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            gap: 12px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .nav-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .alert-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            border-left: 4px solid;
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .alert-critical { border-color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+        .alert-warning { border-color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+        .alert-info { border-color: #3498db; background: rgba(52, 152, 219, 0.1); }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .alert-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .alert-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary { background: #3498db; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .batch-operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .operation-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .operation-card:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+        }
+        
+        .operation-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .operation-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .operation-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .real-time-monitor {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .system-status {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-online { background: #27ae60; }
+        .status-warning { background: #f39c12; }
+        .status-offline { background: #e74c3c; }
+        
+        .live-feed {
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .feed-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .feed-timestamp {
+            color: #3498db;
+            margin-right: 10px;
+        }
+        
+        .feed-message {
+            color: #ecf0f1;
+        }
+        
+        .feed-warning { color: #f39c12; }
+        .feed-error { color: #e74c3c; }
+        .feed-success { color: #27ae60; }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span>Admin Command Center</span>
+        </div>
+        <div class="user-info">
+            <div>
+                <div style="font-weight: 600;">System Administrator</div>
+                <div style="font-size: 0.9rem; opacity: 0.7;">Last login: Today 09:30 AM</div>
+            </div>
+            <div class="avatar">SA</div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <span class="nav-icon">🚨</span>
+                        <span>Alert Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">🔄</span>
+                        <span>Batch Operations</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">🔧</span>
+                        <span>Maintenance</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">🕵️</span>
+                        <span>Fraud Detection</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span>Customer Support</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">💰</span>
+                        <span>Financial Tools</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="content-area">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Critical Alerts</div>
+                        <span style="background: #e74c3c; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                            3 Critical
+                        </span>
+                    </div>
+                    <div class="alert-list">
+                        <div class="alert-item alert-critical">
+                            <div class="alert-header">
+                                <div class="alert-title">Low Battery Emergency</div>
+                                <div class="alert-time">2 min ago</div>
+                            </div>
+                            <div class="alert-description">
+                                Station #123 (Dar Central Mall) reporting critically low battery levels. 2 devices remaining.
+                            </div>
+                            <div class="alert-actions">
+                                <button class="btn btn-primary" onclick="dispatchTechnician(123)">Dispatch Technician</button>
+                                <button class="btn btn-warning" onclick="sendAlert(123)">Send Alert</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-critical">
+                            <div class="alert-header">
+                                <div class="alert-title">Payment Processing Failure</div>
+                                <div class="alert-time">5 min ago</div>
+                            </div>
+                            <div class="alert-description">
+                                Multiple payment failures detected. AzamPay gateway experiencing issues.
+                            </div>
+                            <div class="alert-actions">
+                                <button class="btn btn-danger" onclick="restartPaymentGateway()">Restart Gateway</button>
+                                <button class="btn btn-primary" onclick="notifyTeam()">Notify Team</button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item alert-warning">
+                            <div class="alert-header">
+                                <div class="alert-title">High Theft Risk Detected</div>
+                                <div class="alert-time">12 min ago</div>
+                            </div>
+                            <div class="alert-description">
+                                Unusual activity patterns at Station #456. Possible theft attempt in progress.
+                            </div>
+                            <div class="alert-actions">
+                                <button class="btn btn-danger" onclick="lockStation(456)">Lock Station</button>
+                                <button class="btn btn-warning" onclick="alertSecurity(456)">Alert Security</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">System Overview</div>
+                        <span style="background: #27ae60; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                            Operational
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #27ae60;">98%</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">System Uptime</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #3498db;">156</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Active Stations</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #f39c12;">42</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Pending Issues</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #e74c3c;">3</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Critical Alerts</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Quick Actions</div>
+                    </div>
+                    <div class="batch-operations">
+                        <div class="operation-card" onclick="openBatchOperation('unlock')">
+                            <span class="operation-icon">🔓</span>
+                            <div class="operation-title">Unlock Stations</div>
+                            <div class="operation-desc">Remotely unlock multiple stations</div>
+                        </div>
+                        
+                        <div class="operation-card" onclick="openBatchOperation('lock')">
+                            <span class="operation-icon">🔒</span>
+                            <div class="operation-title">Lock Stations</div>
+                            <div class="operation-desc">Emergency lockdown procedures</div>
+                        </div>
+                        
+                        <div class="operation-card" onclick="openBatchOperation('maintenance')">
+                            <span class="operation-icon">🛠️</span>
+                            <div class="operation-title">Schedule Maintenance</div>
+                            <div class="operation-desc">Plan preventive maintenance</div>
+                        </div>
+                        
+                        <div class="operation-card" onclick="openBatchOperation('update')">
+                            <span class="operation-icon">🔄</span>
+                            <div class="operation-title">Software Update</div>
+                            <div class="operation-desc">Deploy firmware updates</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="real-time-monitor">
+                <div class="monitor-header">
+                    <div class="panel-title">Real-time System Monitor</div>
+                    <div class="system-status">
+                        <div class="status-indicator">
+                            <div class="status-dot status-online"></div>
+                            <span>API Services</span>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-warning"></div>
+                            <span>Payment Gateway</span>
+                        </div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-online"></div>
+                            <span>Database</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="live-feed" id="liveFeed">
+                    <div class="feed-entry">
+                        <span class="feed-timestamp">[09:45:23]</span>
+                        <span class="feed-message feed-success">✓ Payment processed successfully - TXN#PMT001234</span>
+                    </div>
+                    <div class="feed-entry">
+                        <span class="feed-timestamp">[09:45:18]</span>
+                        <span class="feed-message feed-warning">⚠ Low battery alert - Station #123 (Dar Central)</span>
+                    </div>
+                    <div class="feed-entry">
+                        <span class="feed-timestamp">[09:45:12]</span>
+                        <span class="feed-message">ℹ New rental started - Device PB004567</span>
+                    </div>
+                    <div class="feed-entry">
+                        <span class="feed-timestamp">[09:45:05]</span>
+                        <span class="feed-message feed-error">✗ Payment gateway timeout - retrying...</span>
+                    </div>
+                    <div class="feed-entry">
+                        <span class="feed-timestamp">[09:44:58]</span>
+                        <span class="feed-message">ℹ User registered - +255 712 *** 678</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate real-time feed updates
+        document.addEventListener('DOMContentLoaded', function() {
+            setInterval(updateLiveFeed, 3000);
+        });
+        
+        function updateLiveFeed() {
+            const feed = document.getElementById('liveFeed');
+            const events = [
+                { type: 'success', message: '✓ Rental completed successfully' },
+                { type: 'warning', message: '⚠ Maintenance required - Device PB001234' },
+                { type: 'info', message: 'ℹ New user registration' },
+                { type: 'error', message: '✗ Authentication failed attempt' },
+                { type: 'success', message: '✓ Device charging cycle completed' }
+            ];
+            
+            const event = events[Math.floor(Math.random() * events.length)];
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = 'feed-entry';
+            entry.innerHTML = `
+                <span class="feed-timestamp">[${timestamp}]</span>
+                <span class="feed-message ${event.type === 'success' ? 'feed-success' : 
+                                          event.type === 'warning' ? 'feed-warning' : 
+                                          event.type === 'error' ? 'feed-error' : ''}">
+                    ${event.message}
+                </span>
+            `;
+            
+            feed.insertBefore(entry, feed.firstChild);
+            
+            // Remove oldest entries if too many
+            if (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+        
+        function dispatchTechnician(stationId) {
+            alert(`Dispatching technician to Station #${stationId}\nIn real implementation, this would integrate with field service management system.`);
+        }
+        
+        function sendAlert(stationId) {
+            alert(`Sending alert for Station #${stationId}\nSMS/email notification would be sent to relevant personnel.`);
+        }
+        
+        function restartPaymentGateway() {
+            if (confirm('Are you sure you want to restart the payment gateway?\nThis may temporarily affect payment processing.')) {
+                alert('Payment gateway restart initiated.\nMonitoring system will track recovery progress.');
+            }
+        }
+        
+        function notifyTeam() {
+            alert('Notifying operations team about payment gateway issues.\nIncident ticket created in support system.');
+        }
+        
+        function lockStation(stationId) {
+            if (confirm(`Emergency lock Station #${stationId}?\nThis will prevent all rentals until manually unlocked.`)) {
+                alert(`Station #${stationId} locked.\nSecurity team notified and incident logged.`);
+            }
+        }
+        
+        function alertSecurity(stationId) {
+            alert(`Security alert sent for Station #${stationId}.\nCCTV footage review initiated and local security contacted.`);
+        }
+        
+        function openBatchOperation(operation) {
+            const operations = {
+                'unlock': 'Unlock multiple stations simultaneously',
+                'lock': 'Emergency lockdown of selected stations',
+                'maintenance': 'Schedule preventive maintenance for devices',
+                'update': 'Deploy software/firmware updates to fleet'
+            };
+            
+            alert(`Opening ${operation} batch operation dialog...\n${operations[operation]}\n\nIn real implementation, this would open a modal with selection criteria and execution controls.`);
+        }
+    </script>
+</body>
+</html>

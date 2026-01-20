@@ -1,0 +1,176 @@
+# .github/workflows/mobile-money-tests.yml
+name: Mobile Money Integration Tests
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 8 AM UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - staging
+
+jobs:
+  test-mobile-money:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'test' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Test AzamPay Integration
+        run: npm run test:payments -- --provider=azampay
+        env:
+          AZAMPAY_API_KEY: ${{ secrets.AZAMPAY_TEST_API_KEY }}
+          AZAMPAY_MERCHANT_ID: ${{ secrets.AZAMPAY_TEST_MERCHANT_ID }}
+          AZAMPAY_BASE_URL: https://sandbox.azampay.co.tz
+          NODE_ENV: test
+          
+      - name: Test M-Pesa Integration
+        run: npm run test:payments -- --provider=mpesa
+        env:
+          MPESA_CONSUMER_KEY: ${{ secrets.MPESA_TEST_CONSUMER_KEY }}
+          MPESA_CONSUMER_SECRET: ${{ secrets.MPESA_TEST_CONSUMER_SECRET }}
+          MPESA_SHORTCODE: ${{ secrets.MPESA_TEST_SHORTCODE }}
+          MPESA_PASSKEY: ${{ secrets.MPESA_TEST_PASSKEY }}
+          NODE_ENV: test
+          
+      - name: Test Tigo Pesa Integration
+        run: npm run test:payments -- --provider=tigo
+        env:
+          TIGO_CLIENT_ID: ${{ secrets.TIGO_TEST_CLIENT_ID }}
+          TIGO_CLIENT_SECRET: ${{ secrets.TIGO_TEST_CLIENT_SECRET }}
+          TIGO_BASE_URL: https://tigoapi.tigopesa.co.tz
+          NODE_ENV: test
+          
+      - name: Test Airtel Money Integration
+        run: npm run test:payments -- --provider=airtel
+        env:
+          AIRTEL_API_KEY: ${{ secrets.AIRTEL_TEST_API_KEY }}
+          AIRTEL_BASE_URL: https://openapiuat.airtel.africa
+          NODE_ENV: test
+          
+      - name: Test Halopesa Integration
+        run: npm run test:payments -- --provider=halopesa
+        env:
+          HALOPESA_API_KEY: ${{ secrets.HALOPESA_TEST_API_KEY }}
+          HALOPESA_MERCHANT_ID: ${{ secrets.HALOPESA_TEST_MERCHANT_ID }}
+          NODE_ENV: test
+          
+      - name: Generate Test Report
+        run: |
+          npm run generate:test-report -- --format=html --output=mobile-money-report.html
+          
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: mobile-money-test-results
+          path: |
+            mobile-money-report.html
+            test-results/
+          retention-days: 30
+          
+      - name: Send Test Report to Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#payments-alerts'
+          author_name: Mobile Money Test Bot
+          text: |
+            Mobile Money Integration Tests Results:
+            - Environment: ${{ inputs.environment || 'test' }}
+            - Status: ${{ job.status }}
+            - Report: See artifacts for detailed results
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PAYMENTS }}
+
+  validate-webhooks:
+    runs-on: ubuntu-latest
+    needs: test-mobile-money
+    environment: ${{ inputs.environment || 'test' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Test Webhook Endpoints
+        run: |
+          npm run test:webhooks
+          
+      - name: Validate Callback URLs
+        run: |
+          npm run validate:callbacks
+        env:
+          BASE_URL: ${{ vars.TEST_BASE_URL || 'https://test.chajipoa.co.tz' }}
+          
+      - name: Send Webhook Validation Report
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#payments-alerts'
+          author_name: Webhook Validator Bot
+          text: |
+            Webhook Validation Results:
+            - Status: ${{ job.status }}
+            - Base URL: ${{ vars.TEST_BASE_URL || 'https://test.chajipoa.co.tz' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PAYMENTS }}
+
+  security-audit-payments:
+    runs-on: ubuntu-latest
+    needs: validate-webhooks
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Audit Payment Dependencies
+        run: |
+          npm audit --audit-level=moderate --omit=dev
+          
+      - name: Check Payment Security Configurations
+        run: |
+          npm run security:payment-check
+          
+      - name: Send Security Report
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#security-alerts'
+          author_name: Payment Security Bot
+          text: |
+            ⚠️ Payment Security Issues Detected!
+            Please review the security audit results.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_SECURITY }}

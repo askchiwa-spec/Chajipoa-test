@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa - Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+        
+        .date-range-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .date-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .container {
+            padding: 30px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .icon-revenue { background: #e8f5e8; color: #27ae60; }
+        .icon-users { background: #e3f2fd; color: #2196F3; }
+        .icon-devices { background: #fff3e0; color: #FF9800; }
+        .icon-stations { background: #f3e5f5; color: #9C27B0; }
+        
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .kpi-label {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .trend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .trend-up { color: #27ae60; }
+        .trend-down { color: #e74c3c; }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .user-behavior-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .behavior-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .behavior-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        
+        .behavior-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .alerts-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .alert-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+        
+        .alert-high { background: #ffeaea; border-color: #e74c3c; }
+        .alert-medium { background: #fff3cd; border-color: #f39c12; }
+        .alert-low { background: #e8f5e8; border-color: #27ae60; }
+        
+        .alert-content h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .alert-content p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-behavior-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span>⚡</span>
+            <span>ChajiPoa Analytics</span>
+        </div>
+        <div class="date-range-selector">
+            <input type="date" class="date-input" id="startDate" value="2024-01-01">
+            <input type="date" class="date-input" id="endDate" value="2024-01-31">
+            <button class="btn" onclick="refreshAnalytics()">Refresh Data</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- KPI Cards -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Total Revenue</div>
+                    <div class="card-icon icon-revenue">💰</div>
+                </div>
+                <div class="kpi-value" id="revenueValue">TZS 2,450,000</div>
+                <div class="kpi-label">This Month</div>
+                <div class="trend trend-up">
+                    <span>↑ 18.7%</span>
+                    <span>from last month</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Active Users</div>
+                    <div class="card-icon icon-users">👥</div>
+                </div>
+                <div class="kpi-value" id="usersValue">12,458</div>
+                <div class="kpi-label">Registered Users</div>
+                <div class="trend trend-up">
+                    <span>↑ 12.5%</span>
+                    <span>from last month</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Device Utilization</div>
+                    <div class="card-icon icon-devices">📱</div>
+                </div>
+                <div class="kpi-value" id="utilizationValue">78%</div>
+                <div class="kpi-label">Average Usage</div>
+                <div class="trend trend-up">
+                    <span>↑ 5.2%</span>
+                    <span>improvement</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Station Performance</div>
+                    <div class="card-icon icon-stations">🏪</div>
+                </div>
+                <div class="kpi-value" id="stationsValue">156</div>
+                <div class="kpi-label">Active Stations</div>
+                <div class="trend trend-down">
+                    <span>↓ 2.1%</span>
+                    <span>underperforming</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchChart('revenue')">Revenue Trend</button>
+                    <button class="tab" onclick="switchChart('users')">User Growth</button>
+                    <button class="tab" onclick="switchChart('usage')">Usage Patterns</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="card-header">
+                    <div class="card-title">Top Performing Stations</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="topStationsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Behavior Analytics -->
+        <div class="chart-card">
+            <div class="card-header">
+                <div class="card-title">User Behavior Insights</div>
+            </div>
+            <div class="user-behavior-grid">
+                <div class="behavior-card">
+                    <div class="behavior-value" id="peakHours">18:00</div>
+                    <div class="behavior-label">Peak Usage Time</div>
+                </div>
+                <div class="behavior-card">
+                    <div class="behavior-value" id="avgDuration">2.3h</div>
+                    <div class="behavior-label">Avg Rental Duration</div>
+                </div>
+                <div class="behavior-card">
+                    <div class="behavior-value" id="popularRoute">Dar-Mwanza</div>
+                    <div class="behavior-label">Most Popular Route</div>
+                </div>
+                <div class="behavior-card">
+                    <div class="behavior-value" id="retention">68%</div>
+                    <div class="behavior-label">Monthly Retention</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alerts Panel -->
+        <div class="alerts-panel">
+            <div class="card-header">
+                <div class="card-title">System Alerts & Insights</div>
+            </div>
+            <div class="alert-item alert-high">
+                <div class="alert-content">
+                    <h4>Low Battery Alert</h4>
+                    <p>5 stations reporting critically low battery levels. Immediate attention required.</p>
+                </div>
+            </div>
+            <div class="alert-item alert-medium">
+                <div class="alert-content">
+                    <h4>High Theft Risk</h4>
+                    <p>3 stations identified with unusual activity patterns suggesting potential theft.</p>
+                </div>
+            </div>
+            <div class="alert-item alert-low">
+                <div class="alert-content">
+                    <h4>Performance Opportunity</h4>
+                    <p>2 stations showing exceptional performance. Consider expanding capacity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global chart instances
+        let mainChart;
+        let topStationsChart;
+        let currentChartType = 'revenue';
+        
+        // Sample data (in real implementation, this would come from API)
+        const sampleData = {
+            revenue: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                data: [1800000, 2100000, 2300000, 2450000, 2600000, 2450000]
+            },
+            users: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                data: [8900, 9800, 10500, 11200, 11800, 12458]
+            },
+            usage: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                data: [65, 68, 72, 75, 77, 78]
+            },
+            topStations: {
+                labels: ['Dar Central', 'Mlimani City', 'Mwanza Airport', 'Arusha Bus', 'Ocean Road'],
+                data: [95, 88, 92, 78, 85]
+            }
+        };
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            updateBehaviorInsights();
+        });
+        
+        function initializeCharts() {
+            // Main chart
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sampleData.revenue.labels,
+                    datasets: [{
+                        label: 'Revenue (TZS)',
+                        data: sampleData.revenue.data,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Top stations chart
+            const topCtx = document.getElementById('topStationsChart').getContext('2d');
+            topStationsChart = new Chart(topCtx, {
+                type: 'bar',
+                data: {
+                    labels: sampleData.topStations.labels,
+                    datasets: [{
+                        label: 'Utilization %',
+                        data: sampleData.topStations.data,
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#FF9800',
+                            '#9C27B0',
+                            '#E91E63'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function switchChart(type) {
+            currentChartType = type;
+            
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update chart data
+            let label, data, color;
+            
+            switch(type) {
+                case 'revenue':
+                    label = 'Revenue (TZS)';
+                    data = sampleData.revenue.data;
+                    color = '#4CAF50';
+                    break;
+                case 'users':
+                    label = 'Active Users';
+                    data = sampleData.users.data;
+                    color = '#2196F3';
+                    break;
+                case 'usage':
+                    label = 'Utilization %';
+                    data = sampleData.usage.data;
+                    color = '#FF9800';
+                    break;
+            }
+            
+            // Update chart
+            mainChart.data.datasets[0].label = label;
+            mainChart.data.datasets[0].data = data;
+            mainChart.data.datasets[0].borderColor = color;
+            mainChart.data.datasets[0].backgroundColor = color.replace(')', ', 0.1)').replace('rgb', 'rgba');
+            mainChart.update();
+        }
+        
+        function updateBehaviorInsights() {
+            // Simulate updating behavior insights
+            document.getElementById('peakHours').textContent = '18:00';
+            document.getElementById('avgDuration').textContent = '2.3h';
+            document.getElementById('popularRoute').textContent = 'Dar-Mwanza';
+            document.getElementById('retention').textContent = '68%';
+        }
+        
+        function refreshAnalytics() {
+            // Simulate data refresh
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // In real implementation, this would fetch new data from API
+            console.log(`Refreshing analytics for ${startDate} to ${endDate}`);
+            
+            // Update KPIs with simulated data
+            const revenue = Math.floor(Math.random() * 500000) + 2000000;
+            const users = Math.floor(Math.random() * 2000) + 11000;
+            const utilization = Math.floor(Math.random() * 10) + 75;
+            const stations = Math.floor(Math.random() * 10) + 150;
+            
+            document.getElementById('revenueValue').textContent = `TZS ${revenue.toLocaleString()}`;
+            document.getElementById('usersValue').textContent = users.toLocaleString();
+            document.getElementById('utilizationValue').textContent = `${utilization}%`;
+            document.getElementById('stationsValue').textContent = stations;
+            
+            // Show temporary loading indicator
+            const refreshBtn = event.target;
+            const originalText = refreshBtn.textContent;
+            refreshBtn.textContent = 'Loading...';
+            refreshBtn.disabled = true;
+            
+            setTimeout(() => {
+                refreshBtn.textContent = originalText;
+                refreshBtn.disabled = false;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

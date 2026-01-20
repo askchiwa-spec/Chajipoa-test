@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chajipoa-api
+  namespace: chajipoa-staging
+  labels:
+    app: chajipoa-api
+    environment: staging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chajipoa-api
+  template:
+    metadata:
+      labels:
+        app: chajipoa-api
+        environment: staging
+    spec:
+      containers:
+      - name: chajipoa-api
+        image: ghcr.io/askchiwa-spec/chajipoa-api:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "staging"
+        - name: PORT
+          value: "3000"
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-db-secret
+              key: host
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-db-secret
+              key: database
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-db-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-db-secret
+              key: password
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-mongo-secret
+              key: uri
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-redis-secret
+              key: host
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-redis-secret
+              key: password
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-jwt-secret
+              key: secret
+        - name: AZAMPAY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-payment-secret
+              key: api-key
+        - name: AZAMPAY_MERCHANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: chajipoa-payment-secret
+              key: merchant-id
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chajipoa-frontend
+  namespace: chajipoa-staging
+  labels:
+    app: chajipoa-frontend
+    environment: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chajipoa-frontend
+  template:
+    metadata:
+      labels:
+        app: chajipoa-frontend
+        environment: staging
+    spec:
+      containers:
+      - name: chajipoa-frontend
+        image: ghcr.io/askchiwa-spec/chajipoa-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
