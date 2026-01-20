@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa Admin Dashboard Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 25px 0;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            padding: 0 25px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 25px;
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 0 15px;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            gap: 12px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .nav-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .topbar {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topbar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notification-bell {
+            position: relative;
+            font-size: 1.3rem;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Dashboard Content */
+        .dashboard-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card.users { border-color: #3498db; }
+        .stat-card.devices { border-color: #27ae60; }
+        .stat-card.revenue { border-color: #f39c12; }
+        .stat-card.stations { border-color: #9b59b6; }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-card.users .stat-icon { background: #e3f2fd; color: #3498db; }
+        .stat-card.devices .stat-icon { background: #e8f5e8; color: #27ae60; }
+        .stat-card.revenue .stat-icon { background: #fff3e0; color: #f39c12; }
+        .stat-card.stations .stat-icon { background: #f3e5f5; color: #9b59b6; }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .stat-trend {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .trend-up { color: #27ae60; }
+        .trend-down { color: #e74c3c; }
+        
+        /* Charts and Tables */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card, .table-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #e8f5e8; color: #27ae60; }
+        .status-maintenance { background: #fff3e0; color: #f39c12; }
+        .status-lost { background: #ffeaea; color: #e74c3c; }
+        
+        .action-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: #2980b9;
+        }
+        
+        .action-btn.warning {
+            background: #f39c12;
+        }
+        
+        .action-btn.warning:hover {
+            background: #e67e22;
+        }
+        
+        .action-btn.danger {
+            background: #e74c3c;
+        }
+        
+        .action-btn.danger:hover {
+            background: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .logo-text span:not(.logo-icon) {
+                display: none;
+            }
+            
+            .nav-text {
+                display: none;
+            }
+            
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-text">
+                    <span class="logo-icon">⚡</span>
+                    <span>ChajiPoa Admin</span>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-text">Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">📱</span>
+                        <span class="nav-text">Devices</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">🏪</span>
+                        <span class="nav-text">Stations</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        <span class="nav-text">Payments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">📋</span>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-title">System Dashboard</div>
+                <div class="user-actions">
+                    <div class="notification-bell">
+                        🔔
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="admin-profile">
+                        <div class="admin-avatar">AD</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.95rem;">Admin User</div>
+                            <div style="color: #666; font-size: 0.85rem;">System Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card users">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">12,458</div>
+                                <div class="stat-label">Total Users</div>
+                                <div class="stat-trend trend-up">↑ 12.5% from last month</div>
+                            </div>
+                            <div class="stat-icon">👥</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card devices">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">3,247</div>
+                                <div class="stat-label">Active Devices</div>
+                                <div class="stat-trend trend-up">↑ 8.2% from last month</div>
+                            </div>
+                            <div class="stat-icon">📱</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card revenue">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">TZS 2.4M</div>
+                                <div class="stat-label">Monthly Revenue</div>
+                                <div class="stat-trend trend-up">↑ 18.7% from last month</div>
+                            </div>
+                            <div class="stat-icon">💰</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card stations">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">Active Stations</div>
+                                <div class="stat-trend trend-down">↓ 2.1% from last month</div>
+                            </div>
+                            <div class="stat-icon">🏪</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts and Tables -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <div class="card-title">Revenue Overview</div>
+                            <select style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                                <option>Last 90 Days</option>
+                            </select>
+                        </div>
+                        <div class="chart-placeholder">
+                            📈 Revenue Chart Visualization
+                        </div>
+                    </div>
+                    
+                    <div class="table-card">
+                        <div class="card-header">
+                            <div class="card-title">Recent Activities</div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>User</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>New Rental Started</td>
+                                    <td>+255 712 *** 678</td>
+                                    <td>2 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td>Payment Completed</td>
+                                    <td>+255 654 *** 321</td>
+                                    <td>5 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td>Device Maintenance</td>
+                                    <td>Station #123</td>
+                                    <td>15 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td>New User Registered</td>
+                                    <td>+255 789 *** 456</td>
+                                    <td>22 min ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Device Management Table -->
+                <div class="table-card">
+                    <div class="card-header">
+                        <div class="card-title">Device Status Overview</div>
+                        <button class="action-btn">Add New Device</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Device ID</th>
+                                <th>Station</th>
+                                <th>Status</th>
+                                <th>Battery</th>
+                                <th>Last Used</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PB001234</td>
+                                <td>Dar Central</td>
+                                <td><span class="status-badge status-active">Available</span></td>
+                                <td>85%</td>
+                                <td>2 hours ago</td>
+                                <td>
+                                    <button class="action-btn">View</button>
+                                    <button class="action-btn warning">Maintain</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PB005678</td>
+                                <td>Mlimani Mall</td>
+                                <td><span class="status-badge status-active">Rented</span></td>
+                                <td>45%</td>
+                                <td>Now</td>
+                                <td>
+                                    <button class="action-btn">Track</button>
+                                    <button class="action-btn danger">Report</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PB009012</td>
+                                <td>Arusha Airport</td>
+                                <td><span class="status-badge status-maintenance">Maintenance</span></td>
+                                <td>15%</td>
+                                <td>1 day ago</td>
+                                <td>
+                                    <button class="action-btn">Details</button>
+                                    <button class="action-btn">Return</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

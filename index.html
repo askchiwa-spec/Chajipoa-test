@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChajiPoa Dashboard Previews</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .dashboard-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .dashboard-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-client .dashboard-icon { color: #4CAF50; }
+        .dashboard-admin .dashboard-icon { color: #2c3e50; }
+        
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .dashboard-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-admin {
+            background: linear-gradient(45deg, #2c3e50, #1a2530);
+        }
+        
+        .footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">⚡</div>
+        <h1>ChajiPoa Dashboard Previews</h1>
+        <p class="subtitle">Experience the look and feel of our user interfaces</p>
+        
+        <div class="dashboard-options">
+            <div class="dashboard-card dashboard-client" onclick="window.open('client-dashboard-preview.html', '_blank')">
+                <div class="dashboard-icon">📱</div>
+                <h3 class="dashboard-title">Client Dashboard</h3>
+                <p class="dashboard-description">
+                    The user-facing dashboard for customers to manage their rentals, 
+                    view rental history, and interact with the power bank system.
+                </p>
+                <a href="client-dashboard-preview.html" target="_blank" class="btn">Preview Client Dashboard</a>
+            </div>
+            
+            <div class="dashboard-card dashboard-admin" onclick="window.open('admin-dashboard-preview.html', '_blank')">
+                <div class="dashboard-icon">📊</div>
+                <h3 class="dashboard-title">Admin Dashboard</h3>
+                <p class="dashboard-description">
+                    The administrative interface for managing users, devices, 
+                    stations, payments, and system analytics.
+                </p>
+                <a href="admin-dashboard-preview.html" target="_blank" class="btn btn-admin">Preview Admin Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>ChajiPoa Power Bank Rental Platform - Built for Tanzania's Digital Economy</p>
+            <p>Preview Mode - Full functionality available in production</p>
+        </div>
+    </div>
+</body>
+</html>
