@@ -162,4 +162,4 @@ For support, email support@chajipoa.com or join our Slack channel.
 
 ---
 
-**ChajiPoa** - Powering Tanzania, one charge at a time ⚡
+**ChajiPoa** - Powering Tanzania, one charge at a time ⚡# Chajipoa-test
