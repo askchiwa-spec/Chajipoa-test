@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 3000;
 // Enhanced Security middleware
 app.use(helmet());
 app.use(securityMiddleware.securityHeaders());
-app.use(cors(require('../config/security.config').cors));
+app.use(cors(require('./config/security.config').cors));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
