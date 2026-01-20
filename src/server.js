@@ -27,6 +27,7 @@ const authRoutes = require('./routes/auth.routes');
 const monitoringRoutes = require('./routes/monitoring.routes');
 const securityRoutes = require('./routes/security.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const azampayRoutes = require('./routes/azampay.routes');
 
 // Import Swagger
 const swaggerUi = require('swagger-ui-express');
@@ -81,6 +82,7 @@ app.use('/api/v1/qr', qrRoutes);
 app.use('/api/v1/monitoring', monitoringRoutes);
 app.use('/api/v1/security', securityRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/azampay', azampayRoutes);
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
